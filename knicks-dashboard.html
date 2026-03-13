@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NYK 2025–26 | Stats Hub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --knicks-blue: #006BB6;
+    --knicks-orange: #F58426;
+    --knicks-gray: #BEC0C2;
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.5; }
+
+  /* NAV */
+  nav { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; gap: 0; position: sticky; top: 0; z-index: 100; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; padding: 12px 0; margin-right: 24px; text-decoration: none; }
+  .nav-logo { width: 28px; height: 28px; }
+  .nav-title { font-weight: 600; font-size: 15px; color: var(--text); }
+  .nav-season { font-size: 11px; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 2px 8px; }
+  .nav-tabs { display: flex; gap: 0; }
+  .nav-tab { padding: 12px 16px; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; font-size: 13px; transition: color .15s; white-space: nowrap; }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--text); border-bottom-color: var(--knicks-orange); }
+
+  /* LAYOUT */
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HEADER CARD */
+  .hero { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .hero-badge { background: var(--knicks-blue); color: #fff; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; letter-spacing: .5px; }
+  .hero-record { font-size: 42px; font-weight: 700; color: var(--text); line-height: 1; }
+  .hero-sub { color: var(--text2); font-size: 13px; margin-top: 4px; }
+  .hero-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+  .hero-stat { text-align: center; }
+  .hero-stat-val { font-size: 22px; font-weight: 700; color: var(--knicks-orange); }
+  .hero-stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; }
+  .hero-divider { width: 1px; background: var(--border); align-self: stretch; }
+  .record-badge { display: inline-flex; align-items: center; gap: 6px; background: #1a2a1a; border: 1px solid #2d4a2d; border-radius: 6px; padding: 6px 12px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-green { background: #3fb950; }
+  .dot-red { background: #f85149; }
+
+  /* GRID */
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+
+  /* STAT CARD */
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .stat-card .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .stat-card .value { font-size: 26px; font-weight: 700; color: var(--text); }
+  .stat-card .sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .stat-card .rank { font-size: 10px; color: var(--knicks-orange); font-weight: 600; margin-top: 4px; }
+
+  /* CHART CARD */
+  .chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .card-sub { font-size: 11px; color: var(--text3); margin-bottom: 16px; }
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* TABLE */
+  .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+  .table-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .table-header .title { font-size: 13px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { padding: 8px 12px; color: var(--text3); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; text-align: right; border-bottom: 1px solid var(--border); background: var(--bg); white-space: nowrap; }
+  th:first-child { text-align: left; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text); text-align: right; vertical-align: middle; }
+  td:first-child { text-align: left; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+  .player-name { font-weight: 500; color: var(--text); }
+  .player-pos { font-size: 10px; color: var(--text3); margin-left: 4px; padding: 1px 5px; background: var(--bg3); border-radius: 3px; }
+  .top-scorer { color: var(--knicks-orange); font-weight: 700; }
+  .highlight-green { color: #3fb950; }
+  .highlight-orange { color: var(--knicks-orange); }
+
+  /* STANDINGS */
+  .standings-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  .standings-row:last-child { border-bottom: none; }
+  .standings-row.current { background: rgba(0, 107, 182, 0.08); border-left: 3px solid var(--knicks-blue); }
+  .seed { width: 20px; text-align: center; color: var(--text3); font-size: 12px; font-weight: 600; }
+  .team-name-s { flex: 1; font-size: 13px; font-weight: 500; }
+  .record-s { color: var(--text2); font-size: 12px; min-width: 60px; text-align: right; }
+  .pct-s { color: var(--text2); font-size: 12px; min-width: 45px; text-align: right; }
+  .gb-s { color: var(--text3); font-size: 12px; min-width: 30px; text-align: right; }
+  .pct-bar-wrap { width: 80px; height: 4px; background: var(--border); border-radius: 2px; }
+  .pct-bar { height: 4px; border-radius: 2px; background: var(--knicks-blue); }
+  .pct-bar.current-bar { background: var(--knicks-orange); }
+
+  /* LAST 10 */
+  .results-strip { display: flex; gap: 4px; flex-wrap: wrap; }
+  .r-chip { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; cursor: default; }
+  .r-w { background: #1a2a1a; border: 1px solid #2d4a2d; color: #3fb950; }
+  .r-l { background: #2a1a1a; border: 1px solid #4a2d2d; color: #f85149; }
+
+  /* SECTION TITLE */
+  .section-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* PILL TABS */
+  .pill-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .pill { padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); color: var(--text2); background: transparent; transition: all .15s; }
+  .pill.active { background: var(--knicks-blue); border-color: var(--knicks-blue); color: #fff; }
+
+  /* FOOTER */
+  footer { text-align: center; color: var(--text3); font-size: 11px; padding: 32px 16px; border-top: 1px solid var(--border); margin-top: 40px; }
+
+  @media (max-width: 700px) {
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .hero { flex-direction: column; align-items: flex-start; }
+    .hero-divider { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <svg class="nav-logo" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="14" fill="#006BB6"/>
+      <text x="14" y="19" text-anchor="middle" fill="#F58426" font-size="11" font-weight="900" font-family="Arial">NYK</text>
+    </svg>
+    <span class="nav-title">Knicks Hub</span>
+    <span class="nav-season">2025–26</span>
+  </a>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showPage('overview',this)">Overview</div>
+    <div class="nav-tab" onclick="showPage('roster',this)">Roster</div>
+    <div class="nav-tab" onclick="showPage('standings',this)">Standings</div>
+    <div class="nav-tab" onclick="showPage('splits',this)">Splits</div>
+  </div>
+</nav>
+
+<main>
+
+<!-- OVERVIEW PAGE -->
+<div class="page active" id="page-overview">
+
+  <div class="hero">
+    <div>
+      <div style="margin-bottom:8px"><span class="hero-badge">NYC</span></div>
+      <div class="hero-record">42 – 25</div>
+      <div class="hero-sub">3rd seed · Eastern Conference · Atlantic Division</div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <div class="record-badge"><span class="dot dot-green"></span><span style="font-size:12px;color:#e6edf3;">Home 24–10</span></div>
+        <div class="record-badge"><span class="dot dot-red"></span><span style="font-size:12px;color:#e6edf3;">Away 18–15</span></div>
+      </div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-val">118.0</div>
+        <div class="hero-stat-label">PPG off</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">111.9</div>
+        <div class="hero-stat-label">PPG def</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">+6.1</div>
+        <div class="hero-stat-label">Net rtg</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">47.2%</div>
+        <div class="hero-stat-label">FG%</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">37.8%</div>
+        <div class="hero-stat-label">3P%</div>
+      </div>
+    </div>
+    <div class="hero-divider"></div>
+    <div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Last 10</div>
+      <div class="results-strip">
+        <div class="r-chip r-w" title="W">W</div>
+        <div class="r-chip r-w" title="W">W</div>
+        <div class="r-chip r-l" title="L">L</div>
+        <div class="r-chip r-w" title="W">W</div>
+        <div class="r-chip r-w" title="W">W</div>
+        <div class="r-chip r-w" title="W">W</div>
+        <div class="r-chip r-l" title="L">L</div>
+        <div class="r-chip r-w" title="W">W</div>
+        <div class="r-chip r-w" title="W">W</div>
+        <div class="r-chip r-l" title="L">L</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">7–3 last 10</div>
+    </div>
+  </div>
+
+  <div class="grid-4">
+    <div class="stat-card">
+      <div class="label">Points / gm</div>
+      <div class="value">118.0</div>
+      <div class="rank">8th in NBA</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Rebounds / gm</div>
+      <div class="value">46.3</div>
+      <div class="rank">4th in NBA</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Assists / gm</div>
+      <div class="value">27.2</div>
+      <div class="rank">10th in NBA</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">3PM / gm</div>
+      <div class="value">15.0</div>
+      <div class="rank">4th in NBA</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Opp PPG</div>
+      <div class="value">111.9</div>
+      <div class="sub">Def. efficiency</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">FG%</div>
+      <div class="value">47.2%</div>
+      <div class="rank">12th in NBA</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">FT%</div>
+      <div class="value">79.0%</div>
+      <div class="rank">12th in NBA</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Oreb%</div>
+      <div class="value">32.6%</div>
+      <div class="rank">7th in NBA</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="card-title">Scoring distribution</div>
+      <div class="card-sub">Points by player (season avg)</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="scoringChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Offense vs Defense rating</div>
+      <div class="card-sub">Per 100 possessions</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="ratingChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title">Season notes</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px;">
+    <div class="stat-card" style="border-left:3px solid #F58426;">
+      <div class="label" style="color:var(--knicks-orange);">NBA Cup champs</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6;">Won the 2025–26 NBA Cup on Dec. 16, finishing 6–1 in Cup play — first Cup champs without a perfect record.</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid #006BB6;">
+      <div class="label" style="color:var(--knicks-blue);">Record blowout</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6;">Beat the Brooklyn Nets 120–66 in January — a franchise record for largest margin of victory in a regular season game.</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid #3fb950;">
+      <div class="label" style="color:#3fb950;">KAT leads NBA</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6;">Karl-Anthony Towns leads the league with 46 double-doubles on the season, three ahead of Nikola Jokić.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ROSTER PAGE -->
+<div class="page" id="page-roster">
+  <div class="pill-tabs">
+    <div class="pill active" onclick="filterPos('all',this)">All</div>
+    <div class="pill" onclick="filterPos('G',this)">Guards</div>
+    <div class="pill" onclick="filterPos('F',this)">Forwards</div>
+    <div class="pill" onclick="filterPos('C',this)">Centers</div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div class="title">Player statistics — 2025–26 season avg</div>
+      <div style="font-size:11px;color:var(--text3);">Per game · sorted by PPG</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="rosterTable">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>GP</th>
+            <th>MIN</th>
+            <th>PTS</th>
+            <th>REB</th>
+            <th>AST</th>
+            <th>STL</th>
+            <th>BLK</th>
+            <th>FG%</th>
+            <th>3P%</th>
+          </tr>
+        </thead>
+        <tbody id="rosterBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="chart-card">
+      <div class="card-title">Points leaders</div>
+      <div class="card-sub">Season average</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="ptsChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Rebounds leaders</div>
+      <div class="card-sub">Season average</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="rebChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Assists leaders</div>
+      <div class="card-sub">Season average</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="astChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- STANDINGS PAGE -->
+<div class="page" id="page-standings">
+  <div class="grid-2">
+    <div class="table-card">
+      <div class="table-header"><div class="title">Eastern Conference</div></div>
+      <div id="eastStandings"></div>
+    </div>
+    <div class="chart-card" style="align-self:start;">
+      <div class="card-title">Win% comparison — Atlantic Division</div>
+      <div class="card-sub">Current win percentage</div>
+      <div class="chart-wrap" style="height:260px"><canvas id="divChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- SPLITS PAGE -->
+<div class="page" id="page-splits">
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="card-title">Home vs Away</div>
+      <div class="card-sub">Win/loss record by venue</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="homeAwayChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Monthly record</div>
+      <div class="card-sub">Wins and losses per month</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="monthlyChart"></canvas></div>
+    </div>
+  </div>
+  <div class="grid-3">
+    <div class="stat-card">
+      <div class="label">vs .500+ teams</div>
+      <div class="value">21–17</div>
+      <div class="sub">Against winning records</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Close games (≤5 pts)</div>
+      <div class="value">14–9</div>
+      <div class="sub">Clutch performance</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Back-to-backs</div>
+      <div class="value">8–5</div>
+      <div class="sub">Second night of B2Bs</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Games 100+ pts allowed</div>
+      <div class="value">32 gms</div>
+      <div class="sub">58 games played</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Q4 scoring avg</div>
+      <div class="value">29.4</div>
+      <div class="sub">Per game in 4th quarter</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Turnover margin</div>
+      <div class="value">+0.5</div>
+      <div class="sub">13.6 TO / 14.1 opp</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>Data sourced from Basketball-Reference, StatMuse, Yahoo Sports &amp; NBA.com · Last updated Mar 13, 2026 · Made with ♥ for Knicks fans</footer>
+
+<script>
+const players = [
+  { name:'Jalen Brunson',    pos:'PG', gp:55, min:34.7, pts:26.8, reb:3.8, ast:6.2, stl:1.4, blk:0.1, fg:47.1, tp:38.5 },
+  { name:'Karl-Anthony Towns', pos:'C', gp:53, min:31.4, pts:20.1, reb:11.8, ast:2.8, stl:0.9, blk:0.6, fg:47.4, tp:35.2 },
+  { name:'OG Anunoby',       pos:'SF', gp:52, min:33.2, pts:16.3, reb:5.4, ast:2.2, stl:1.8, blk:0.8, fg:47.1, tp:37.0 },
+  { name:'Mikal Bridges',    pos:'SG', gp:55, min:34.2, pts:15.6, reb:4.2, ast:4.0, stl:1.4, blk:0.8, fg:50.1, tp:39.8 },
+  { name:'Miles McBride',    pos:'SG', gp:50, min:27.0, pts:12.9, reb:3.1, ast:3.4, stl:1.0, blk:0.2, fg:44.8, tp:36.5 },
+  { name:'Josh Hart',        pos:'SF', gp:42, min:29.5, pts:9.8,  reb:7.5, ast:5.2, stl:1.1, blk:0.3, fg:46.0, tp:32.0 },
+  { name:'Jordan Clarkson',  pos:'SG', gp:38, min:18.5, pts:9.1,  reb:2.8, ast:2.1, stl:0.6, blk:0.2, fg:43.2, tp:35.8 },
+  { name:'Mitchell Robinson', pos:'C', gp:32, min:22.0, pts:6.4,  reb:8.7, ast:0.8, stl:0.5, blk:1.1, fg:62.1, tp:0.0  },
+  { name:'Jose Alvarado',    pos:'PG', gp:50, min:19.4, pts:6.2,  reb:2.4, ast:3.7, stl:2.2, blk:0.2, fg:40.5, tp:34.1 },
+  { name:'Tyler Kolek',      pos:'PG', gp:40, min:14.2, pts:4.1,  reb:1.8, ast:2.9, stl:0.7, blk:0.1, fg:42.0, tp:33.2 },
+  { name:'Guerschon Yabusele', pos:'PF', gp:44, min:16.0, pts:7.8, reb:3.5, ast:1.4, stl:0.5, blk:0.4, fg:48.5, tp:38.0 },
+];
+
+let currentFilter = 'all';
+
+function renderRoster(filter) {
+  const body = document.getElementById('rosterBody');
+  const filtered = filter === 'all' ? players : players.filter(p => p.pos.includes(filter === 'G' ? 'G' : filter === 'F' ? 'F' : 'C'));
+  body.innerHTML = filtered.map((p, i) => `
+    <tr>
+      <td><span class="player-name">${p.name}</span><span class="player-pos">${p.pos}</span></td>
+      <td>${p.gp}</td>
+      <td>${p.min.toFixed(1)}</td>
+      <td class="${i===0?'top-scorer':''}">${p.pts.toFixed(1)}</td>
+      <td>${p.reb.toFixed(1)}</td>
+      <td>${p.ast.toFixed(1)}</td>
+      <td class="${p.stl>=1.5?'highlight-green':''}">${p.stl.toFixed(1)}</td>
+      <td>${p.blk.toFixed(1)}</td>
+      <td class="${p.fg>=50?'highlight-orange':''}">${p.fg.toFixed(1)}%</td>
+      <td>${p.tp>0?p.tp.toFixed(1)+'%':'—'}</td>
+    </tr>
+  `).join('');
+}
+
+function filterPos(pos, el) {
+  currentFilter = pos;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderRoster(pos);
+}
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+// East standings data
+const east = [
+  { name:'Detroit Pistons',   w:40, l:13, pct:.755, gb:'-',  curr:false },
+  { name:'Boston Celtics',    w:37, l:18, pct:.673, gb:'5',   curr:false },
+  { name:'New York Knicks',   w:42, l:25, pct:.627, gb:'6',   curr:true  },
+  { name:'Cleveland Cavs',    w:36, l:21, pct:.632, gb:'7',   curr:false },
+  { name:'Toronto Raptors',   w:33, l:24, pct:.579, gb:'9',   curr:false },
+  { name:'Indiana Pacers',    w:30, l:28, pct:.517, gb:'13',  curr:false },
+  { name:'Miami Heat',        w:28, l:31, pct:.475, gb:'16',  curr:false },
+  { name:'Chicago Bulls',     w:26, l:33, pct:.441, gb:'18',  curr:false },
+];
+
+function renderStandings() {
+  const cont = document.getElementById('eastStandings');
+  cont.innerHTML = east.map((t,i) => `
+    <div class="standings-row ${t.curr?'current':''}">
+      <div class="seed">${i+1}</div>
+      <div class="team-name-s">${t.name}${t.curr?' ◀':''}</div>
+      <div class="record-s">${t.w}–${t.l}</div>
+      <div class="pct-s">.${Math.round(t.pct*1000).toString().padStart(3,'0')}</div>
+      <div class="gb-s" style="color:var(--text3)">${t.gb==='–'?'—':t.gb+'GB'}</div>
+      <div class="pct-bar-wrap"><div class="pct-bar ${t.curr?'current-bar':''}" style="width:${t.pct*100}%"></div></div>
+    </div>
+  `).join('');
+}
+
+// CHARTS
+window.addEventListener('load', () => {
+  renderRoster('all');
+  renderStandings();
+
+  const blue = '#006BB6', orange = '#F58426', gray = '#8b949e';
+  const grid = '#21262d', txt = '#8b949e';
+
+  const baseOpts = (yMax) => ({
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: txt, font: { size: 11 } }, grid: { color: grid } },
+      y: { ticks: { color: txt, font: { size: 11 } }, grid: { color: grid }, max: yMax }
+    }
+  });
+
+  // Scoring distribution (donut)
+  new Chart(document.getElementById('scoringChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Brunson','KAT','OG','Bridges','McBride','Hart','Others'],
+      datasets: [{ data: [26.8,20.1,16.3,15.6,12.9,9.8,16.5],
+        backgroundColor: ['#F58426','#006BB6','#3fb950','#58a6ff','#bc8cff','#ffa657','#484f58'],
+        borderWidth: 0 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend: { position:'right', labels:{ color:txt, font:{size:10}, boxWidth:10, padding:8 } } },
+      cutout: '62%'
+    }
+  });
+
+  // Off/Def rating bar
+  new Chart(document.getElementById('ratingChart'), {
+    type:'bar',
+    data: {
+      labels: ['Off Rtg','Def Rtg','Net Rtg'],
+      datasets: [
+        { label:'Knicks', data:[118.4, 112.3, 6.1], backgroundColor:[blue, blue, orange] }
+      ]
+    },
+    options: { ...baseOpts(130), plugins:{ legend:{display:false} } }
+  });
+
+  // Pts leaders
+  new Chart(document.getElementById('ptsChart'), {
+    type:'bar',
+    data: {
+      labels: ['Brunson','KAT','OG','Bridges','McBride'],
+      datasets: [{ data:[26.8,20.1,16.3,15.6,12.9], backgroundColor:[orange,blue,blue,blue,blue], borderRadius:4 }]
+    },
+    options: { ...baseOpts(32), plugins:{legend:{display:false}}, scales:{
+      x:{ticks:{color:txt,font:{size:10}},grid:{color:grid}},
+      y:{ticks:{color:txt,font:{size:10}},grid:{color:grid},max:32}
+    }}
+  });
+
+  // Reb leaders
+  new Chart(document.getElementById('rebChart'), {
+    type:'bar',
+    data: {
+      labels: ['KAT','Robinson','Hart','OG','Bridges'],
+      datasets: [{ data:[11.8,8.7,7.5,5.4,4.2], backgroundColor:[orange,blue,blue,blue,blue], borderRadius:4 }]
+    },
+    options: { ...baseOpts(14), plugins:{legend:{display:false}}, scales:{
+      x:{ticks:{color:txt,font:{size:10}},grid:{color:grid}},
+      y:{ticks:{color:txt,font:{size:10}},grid:{color:grid},max:14}
+    }}
+  });
+
+  // Ast leaders
+  new Chart(document.getElementById('astChart'), {
+    type:'bar',
+    data: {
+      labels: ['Brunson','Hart','Bridges','Alvarado','Kolek'],
+      datasets: [{ data:[6.2,5.2,4.0,3.7,2.9], backgroundColor:[orange,blue,blue,blue,blue], borderRadius:4 }]
+    },
+    options: { ...baseOpts(8), plugins:{legend:{display:false}}, scales:{
+      x:{ticks:{color:txt,font:{size:10}},grid:{color:grid}},
+      y:{ticks:{color:txt,font:{size:10}},grid:{color:grid},max:8}
+    }}
+  });
+
+  // Division comparison
+  new Chart(document.getElementById('divChart'), {
+    type:'bar',
+    data: {
+      labels: ['Knicks','Celtics','76ers','Raptors','Nets'],
+      datasets: [{ label:'Win%', data:[0.627,0.673,0.241,0.579,0.197],
+        backgroundColor:['#F58426','#21262d','#21262d','#21262d','#21262d'],
+        borderRadius:5 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:txt,font:{size:11}},grid:{color:grid}},
+        y:{ticks:{color:txt,font:{size:11},callback:v=>(v*100).toFixed(0)+'%'},grid:{color:grid},max:1}
+      }
+    }
+  });
+
+  // Home vs Away
+  new Chart(document.getElementById('homeAwayChart'), {
+    type:'bar',
+    data: {
+      labels: ['Home','Away'],
+      datasets: [
+        { label:'Wins',  data:[24,18], backgroundColor:['#3fb950','#3fb950'], borderRadius:[4,4] },
+        { label:'Losses',data:[10,15], backgroundColor:['#f85149','#f85149'], borderRadius:[4,4] }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:txt,font:{size:11},boxWidth:10}}},
+      scales:{
+        x:{ticks:{color:txt},grid:{color:grid}},
+        y:{ticks:{color:txt},grid:{color:grid},max:30}
+      }
+    }
+  });
+
+  // Monthly
+  new Chart(document.getElementById('monthlyChart'), {
+    type:'line',
+    data: {
+      labels:['Oct','Nov','Dec','Jan','Feb','Mar*'],
+      datasets:[
+        { label:'Wins',  data:[5,8,10,6,9,4], borderColor:'#3fb950', backgroundColor:'rgba(63,185,80,.1)', tension:.4, fill:true },
+        { label:'Losses',data:[2,4,3,9,4,2],  borderColor:'#f85149', backgroundColor:'rgba(248,81,73,.05)', tension:.4, fill:true }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:txt,font:{size:11},boxWidth:10}}},
+      scales:{
+        x:{ticks:{color:txt},grid:{color:grid}},
+        y:{ticks:{color:txt},grid:{color:grid},max:12}
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
